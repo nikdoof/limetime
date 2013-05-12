@@ -3,6 +3,16 @@ from .utils import InheritanceQuerySet
 from .owners import Corporation
 
 class LocationManager(models.Manager):
+    use_for_related_fields = True
+
+    def get_query_set(self):
+        return InheritanceQuerySet(self.model)
+
+    def select_subclasses(self, *subclasses):
+        return self.get_query_set().select_subclasses(*subclasses)
+
+    def get_subclass(self, *args, **kwargs):
+        return self.get_query_set().select_subclasses().get(*args, **kwargs)
 
     def all_subclassed(self):
         return InheritanceQuerySet(model=self.model).select_subclasses()
@@ -15,8 +25,17 @@ class Location(models.Model):
     y = models.BigIntegerField('Y Location', null=True)
     z = models.BigIntegerField('Z Location', null=True)
 
+    objects = LocationManager()
+
     def __unicode__(self):
-        return "%(name)s (%(id)d)" % self.__dict__
+        return "%(name)s" % self.__dict__
+
+    def get_subclass(self):
+        return Location.objects.get_subclass(pk=self.pk)
+
+    @property
+    def get_type(self):
+        return self.get_subclass().__class__.__name__
 
     class Meta:
         app_label = 'timer'
@@ -76,6 +95,10 @@ class Planet(Location):
 
 class Moon(Location):
     planet = models.ForeignKey(Planet, related_name='moons')
+
+    @property
+    def system(self):
+        return self.planet.system
 
     class Meta:
         app_label = 'timer'

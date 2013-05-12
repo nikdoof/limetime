@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Add Timer</h1>
+</div>
+<form method="post">
+    {{ form.as_p }}
+    {% csrf_token %}
+    <input class="btn btn-success" type="submit" value="Add Timer" />
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{% static "js/jquery.livesearch.js" %}"></script>
+<script type="text/javascript">
+    $(function() {
+        $('id_location').livesearch();
+        $('form').bind('livesearch:results', function(e, results) {
+            console.log(results);
+        });
+    });
+</script>
+{% endblock %}

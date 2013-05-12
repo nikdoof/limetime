@@ -1,3 +1,75 @@
-{% for timer in timer_list %}
-{{ timer.location.name }} - {{ timer.expiration_datetime }}
-{% endfor %}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row-fluid">
+    <div class="span9">
+        <p class="pull-left">
+            <a class="badge {% if not list_type or list_type == 0 %}badge-info{% endif %}" href="?{% if list_all %}all={{ list_all }}&{% endif %}type=0">All</a>
+            <a class="badge {% if list_type == 1 %}badge-info{% endif %}" href="?{% if list_all %}all={{ list_all }}&{% endif %}type=1">Stations</a>
+            <a class="badge {% if list_type == 2 %}badge-info{% endif %}" href="?{% if list_all %}all={{ list_all }}&{% endif %}type=2">IHub</a>
+            <a class="badge {% if list_type == 3 %}badge-info{% endif %}" href="?{% if list_all %}all={{ list_all }}&{% endif %}type=3">POS</a>
+        </p>
+    </div>
+    <div class="span3">
+        <p class="pull-right">
+            <a class="badge {% if not list_all %}badge-info{% endif %}" href="?{% if list_type %}type={{ list_type }}&{% endif %}all=0">Active</a>
+            <a class="badge {% if list_all %}badge-info{% endif %}" href="?{% if list_type %}type={{ list_type }}&{% endif %}all=1">All</a>
+        </p>
+    </div>
+</div>
+<div class="row-fluid">
+    <table class="table">
+      <thead>
+        <tr><th>Location</th><th>Location Type</th><th>System</th><th>Type</th><th>Expiration</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+      {% for timer in object_list %}
+        <tr>
+            <td>{{ timer.location.name }}</td>
+            <td>{{ timer.location.get_type }}</td>
+            <td><a href="http://evemaps.dotlan.net/system/{{ timer.location.get_subclass.system }}">{{ timer.location.get_subclass.system }}</a></td>
+            <td>{{ timer.get_reenforcement_type_display }}</td>
+            <td class="time" data-unixtime="{{ timer.expiration|date:"U" }}">{{ timer.expiration }}</td>
+            <td>{{ timer.get_state_display }}</td>
+            <td></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    function secondsToTime(secs)
+    {
+        var hours = Math.floor(secs / (60 * 60));
+        var divisor_for_minutes = secs % (60 * 60);
+        var minutes = Math.floor(divisor_for_minutes / 60);
+        var divisor_for_seconds = divisor_for_minutes % 60;
+        var seconds = Math.ceil(divisor_for_seconds);
+        var obj = {
+            "h": hours,
+            "m": minutes,
+            "s": seconds
+        };
+        return obj;
+    }
+    function update_timers() {
+        $('td.time').each(
+                function (e) {
+                    if (this.attributes['data-unixtime']) {
+                        var now = new Date();
+                        var secs = this.attributes['data-unixtime'].value - Math.round((now.getTime() / 1000));
+                        if (secs > 0) {
+                            var res = secondsToTime();
+                            this.innerHTML = res.h + "h " + res.m + "m " + res.s + "s";
+                        }
+                    }
+                }
+        );
+    }
+    setInterval(update_timers, 1000);
+    update_timers();
+</script>
+{% endblock %}
