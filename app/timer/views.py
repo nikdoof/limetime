@@ -19,12 +19,12 @@ class TimerListView(ListView):
         if int(self.request.GET.get('all', 0)) == 0:
             qs = qs.filter(expiration__gt=now())
 
-        type = int(self.request.GET.get('type', 0))
-        if type == 1:
+        typ = int(self.request.GET.get('type', 0))
+        if typ == 1:
             qs = [m for m in qs if m.location.get_type == 'Station']
-        if type == 2:
+        if typ == 2:
             qs = [m for m in qs if m.location.get_type == 'System']
-        if type == 3:
+        if typ == 3:
             qs = [m for m in qs if m.location.get_type == 'Moon']
         return qs
 
